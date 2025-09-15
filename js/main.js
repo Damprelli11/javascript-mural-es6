@@ -1,6 +1,22 @@
 import ui from "./ui.js";
 import api from "./api.js";
 
+const pensantosSet = new Set();
+
+async function adicionarChaveAoPensamento() {
+  try {
+    const pensamentos = await api.buscarPensamentos();
+    pensamentos.forEach((pensamento) => {
+      const chavePensamento = `${pensamento.conteudo
+        .trim()
+        .toLowerCase()}-${pensamento.autoria.trim().toLowerCase()}`;
+      pensantosSet.add(chavePensamento);
+    });
+  } catch (error) {
+    alert("Errou ao adicionar chave ao pensamento");
+  }
+}
+
 const regexConteudo = /^[A-Za-z\s]{10,}$/;
 const regexAutoria = /^[A-Za-z]{3,15}$/;
 
@@ -18,6 +34,7 @@ function removerEspacos(string) {
 
 document.addEventListener("DOMContentLoaded", () => {
   ui.renderizarPensamentos();
+  adicionarChaveAoPensamento();
 
   const formularioPensamento = document.getElementById("pensamento-form");
   const botaoCancelar = document.getElementById("botao-cancelar");
@@ -55,15 +72,24 @@ async function manipularSubmissaoFormulario(event) {
   if (!validarData(data)) {
     alert("Não é permitido o cadastro de datas futuras");
   } else {
-    try {
-      if (id) {
-        await api.editarPensamento({ id, conteudo, autoria, data });
-      } else {
-        await api.salvarPensamento({ conteudo, autoria, data });
+    const chaveNovoPensamento = `${conteudo.trim().toLowerCase()}-${autoria
+      .trim()
+      .toLowerCase()}`;
+
+    if (pensantosSet.has(chaveNovoPensamento)) {
+      alert("Esse pensamento já foi cadastrado.");
+      return;
+    } else {
+      try {
+        if (id) {
+          await api.editarPensamento({ id, conteudo, autoria, data });
+        } else {
+          await api.salvarPensamento({ conteudo, autoria, data });
+        }
+        ui.renderizarPensamentos();
+      } catch {
+        alert("Erro ao salvar pensamento");
       }
-      ui.renderizarPensamentos();
-    } catch {
-      alert("Erro ao salvar pensamento");
     }
   }
 }

@@ -133,6 +133,10 @@ const ui = {
     li.appendChild(pensamentoData);
     li.appendChild(icones);
     listaPensamentos.appendChild(li);
+
+    const anoAtual = document.getElementById("span-ano");
+    const dataAtual = new Date();
+    anoAtual.textContent = dataAtual.getFullYear();
   },
 };
 
